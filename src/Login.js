@@ -6,26 +6,26 @@ const Login = () => {
     dispatch({ type: 'disable' })
     dispatch({ type: 'set_message', message: null })
 
-    // Random form submit success status
-    const dividableByThree = Math.floor(Math.random() * 1000) % 3
+    const { usernameInput } = e.target.elements
 
-    const LoginResponse = new Promise((resolve, reject) => {
-      /**
-       * Resolves true if the random number divisible by three.
-       */
-      setTimeout(() => {
-        const canResolve = dividableByThree === 0
-        if (canResolve) resolve(canResolve)
-        reject('Failed!')
-      }, 200)
-    })
-    LoginResponse.then(data => {
-      dispatch({ type: 'enable' })
-    }).catch(e => {
-      dispatch({ type: 'enable' })
-      const message = e.toString()
-      dispatch({ type: 'set_message', message })
-    })
+    window
+      .fetch('/api/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: usernameInput.value
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        dispatch({ type: 'enable' })
+        dispatch({ type: 'set_message', message: 'Success' })
+        window.localStorage.setItem('token', data.token)
+      })
+      .catch(e => {
+        dispatch({ type: 'enable' })
+        const message = e.toString()
+        dispatch({ type: 'set_message', message })
+      })
   }
 
   const [state, dispatch] = useReducer(
@@ -48,18 +48,28 @@ const Login = () => {
   )
   const { processing, message } = state
   return (
-    <div>
+    <div className="container">
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Username:</label>
+          <label htmlFor="usernameInput">Username:</label>
           <input
             disabled={processing}
             type="email"
             name="username"
             placeholder="Enter your username"
+            id="usernameInput"
           />
-          {message === null ? null : <br />}
-          {message}
+        </div>
+        <div className="form-group">
+          <input type="submit" value="Login" />
+        </div>
+        <div className="form-group">
+          {message === null ? null : (
+            <>
+              {' '}
+              <span role="alert">{message}</span>
+            </>
+          )}
         </div>
       </form>
     </div>
